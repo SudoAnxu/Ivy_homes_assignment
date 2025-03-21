@@ -11,8 +11,9 @@ API_VERSIONS = ["v1", "v2", "v3"]
 DELAY = 2  # Delay in seconds between consecutive requests
 MAX_RETRIES = 3  # Maximum number of retries for a request
 
-# Creating a set() to store unique names for each version
+# Creating a set() to store unique names for each version and dictionary for request count
 all_names = {version: set() for version in API_VERSIONS}
+request_counts = {version: 0 for version in API_VERSIONS}
 
 def extract_names(base_url, api_version, prefix="", depth=0, max_depth=2):
     if depth > max_depth:
@@ -36,7 +37,9 @@ def extract_names(base_url, api_version, prefix="", depth=0, max_depth=2):
         except requests.exceptions.RequestException as e:
             logging.error(f"Request failed: {e}")
             return
-    
+
+    request_counts[api_version] += 1  # Increment request count
+        
     data = response.json()
     results = data.get("results", [])
     
@@ -59,14 +62,19 @@ def main():
         for letter in "abcdefghijklmnopqrstuvwxyz":
             extract_names(BASE_URL, version, prefix=letter)
         print(f"Total names extracted from {version}: {len(all_names[version])}")
+        print(f"Total requests made to {version}: {request_counts[version]}")
+    
     
     logging.info(f"Total names extracted across all versions: {sum(len(names) for names in all_names.values())}")
+    logging.info(f"Total requests made across all versions: {sum(counts for counts in request_counts.values())}")
     logging.info("Extraction complete.")
     
     # Saving extracted names to a file
     with open("extracted_names_1.txt", "w") as f:
-        for name in all_names:
-            f.write(name + "\n")
+        for version in all_names:
+            f.write(f"--- {version} ---\n")
+            for name in all_names[version]:
+                f.write(name + "\n")
 
 if __name__ == "__main__":
     main()
