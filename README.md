@@ -33,7 +33,7 @@ pip install requests
 Run the script using:
 
 ```sh
-python script.py
+python name_extractor.py
 ```
 
 ## **Output**
